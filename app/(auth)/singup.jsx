@@ -1,20 +1,39 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import styles from "../../assets/styles/signup.style";
 import SafeScreen from "../../components/SafeScreen";
 import COLORS from "../../constants/colors";
+import { useAuthStore } from "../../store/authStore";
 
 export default function Signup() {
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, isLoading, register, token } = useAuthStore();
 
   const router = useRouter();
 
+
+  const handleSignup = async () => {
+    if (!username || !email || !password) return Alert.alert("Error", "All fields are required");
+
+    console.log("Sending:", { username, email, password });
+
+    const result = await register(username, email, password);
+    if (!result.success) return Alert.alert("Error", result.error);
+
+    const state = useAuthStore.getState();
+    console.log("After signup:", state.user, state.token);
+
+    router.push("/home");
+  }
+
+
+
+  // console.log(user,token)
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -47,7 +66,7 @@ export default function Signup() {
                     placeholderTextColor={COLORS.placeholderText}
                     value={username}
                     onChangeText={setUsername}
-                    keyboardType="email-address"
+                    keyboardType="username"
                     autoCapitalize="none"
                   />
                 </View>
@@ -107,13 +126,13 @@ export default function Signup() {
               </View>
 
               {/* Login button */}
-              <TouchableOpacity style={styles.button} disabled={isLoading} >
+              <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={isLoading} >
                 {
                   isLoading ? (
                     <ActivityIndicator color="#fff" />
                   ) :
                     (
-                      <Text style={styles.buttonText}>Login</Text>
+                      <Text style={styles.buttonText}>Signup</Text>
                     )
                 }
               </TouchableOpacity>
