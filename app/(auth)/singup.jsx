@@ -27,8 +27,7 @@ export default function Signup() {
 
     const state = useAuthStore.getState();
     console.log("After signup:", state.user, state.token);
-
-    router.push("/home");
+    router.push("/")
   }
 
 

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { API_URL } from "../constants/api.js";
 
 export const useAuthStore = create((set) => ({
     user: null,
@@ -12,7 +13,7 @@ export const useAuthStore = create((set) => ({
         try {
             // console.log("Sending:", { username, email, password });
 
-            const response = await fetch("https://book-matrix-server.onrender.com/api/auth/register", {
+            const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
                 ,
@@ -44,29 +45,27 @@ export const useAuthStore = create((set) => ({
     login: async (email, password) => {
         set({ isLoading: true });
         try {
-            const response = await fetch("https://book-matrix-server.onrender.com/api/auth/login", {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: "POST",
-                headers: { "Content-Type": "Application/json" },
-                body: JSON.stringify({
-                    email: email,
-                    password: password
-                })
-            })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
 
             const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Something went wrong");
 
-            if (!response.ok) throw new Error(data.message || "Something want wrong");
+            // Save correct user & token
+            await AsyncStorage.setItem("user", JSON.stringify(data.user));
+            await AsyncStorage.setItem("token", data.token);
 
-            await AsyncStorage.setItem("user", JSON.stringify(data.email));
-            await AsyncStorage.setItem("token", data.token)
-
-
-            set({ token: data.token, user: data.user, isLoading: false })
+            set({ user: data.user, token: data.token, isLoading: false });
+            return { success: true };
         } catch (error) {
             set({ isLoading: false });
             return { success: false, error: error.message };
         }
     },
+
 
     checkAuth: async () => {
         try {

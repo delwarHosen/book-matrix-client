@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link } from "expo-router";
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -18,14 +19,21 @@ export default function Login() {
     console.log(token)
 
     const handleLogin = async () => {
-        const result = await login(email, password);
 
-        if (!result || !result.success) {
-            Alert.alert("Invalid error", result?.message || "Something went wrong");
+        if (!email || !password) {
+            return Alert.alert("Error", "Email and password are required");
+        }
+
+        const result = await login(email, password);
+        if (!result.success) {
+            Alert.alert("Login failed", result.error);
             return;
         }
-        // router.push("/home")
-    }
+
+        console.log("Login success, token:", await AsyncStorage.getItem("token"));
+        // router.push("/home");
+    };
+
 
     return (
         <KeyboardAvoidingView
